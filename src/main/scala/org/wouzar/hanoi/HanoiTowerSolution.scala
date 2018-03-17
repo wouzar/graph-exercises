@@ -6,14 +6,17 @@ import scala.collection.mutable.ArrayBuffer
 object HanoiTowerSolution extends App {
 
   final case class Disk(radius: Int)
-  final case class Pole(name: String, var disks: scala.collection.mutable.Stack[Disk]) {
+
+  final case class Pole(name: String,
+                        var disks: scala.collection.mutable.Stack[Disk]) {
     def copy = {
       Pole(name, disks.filter(_ => true))
     }
   }
 
   final case class State(n: Int, p1: Pole, p2: Pole, p3: Pole) {
-    def isSuccess: Boolean = p1.disks.size == 0 && p2.disks.size == n && p3.disks.size == 0
+    def isSuccess: Boolean =
+      p1.disks.size == 0 && p2.disks.size == n && p3.disks.size == 0
 
     def copy = {
       new State(n, this.p1.copy, this.p2.copy, this.p3.copy)
@@ -22,20 +25,22 @@ object HanoiTowerSolution extends App {
 
   def canMove(from: Pole, to: Pole) =
     from.disks.size > 0 &&
-      (to.disks.size == 0 || to.disks.last.radius < from.disks.last.radius)
+      (to.disks.size == 0 || to.disks.last.radius > from.disks.last.radius)
 
   def move(from: Pole, to: Pole) = {
     if (canMove(from, to)) to.disks.push(from.disks.pop())
-    else throw new IllegalArgumentException("There is no way move disk with bigger radius onto one with smaller!")
+    else
+      throw new IllegalArgumentException(
+        "There is no way move disk with bigger radius onto one with smaller!")
   }
+
+  def show(p: Pole) = p.name + ": " + p.disks.mkString(",")
 
   def dfs = {
 
-    val p1 = Pole("pole 1", mutable.Stack(Disk(3), Disk(2), Disk(1)))
+    val p1 = Pole("pole 1", mutable.Stack(Disk(1), Disk(2), Disk(3)))
     val p2 = Pole("pole 2", mutable.Stack())
     val p3 = Pole("pole 3", mutable.Stack())
-
-    def show(p: Pole) = p.name + ": " + p.disks.mkString(",")
 
     def rec(n: Int, src: Pole, dst: Pole, aux: Pole): Unit = {
       if (n > 0) {
@@ -56,7 +61,7 @@ object HanoiTowerSolution extends App {
 
   def bfs = {
 
-    val p1 = Pole("pole 1", mutable.Stack(Disk(2), Disk(1)))
+    val p1 = Pole("pole 1", mutable.Stack(Disk(1), Disk(2)))
     val p2 = Pole("pole 2", mutable.Stack())
     val p3 = Pole("pole 3", mutable.Stack())
 
@@ -65,7 +70,7 @@ object HanoiTowerSolution extends App {
 
     def convert(state: State, from: Int, to: Int): (Pole, Pole) = {
       (if (from == 1) state.p1 else if (from == 2) state.p2 else state.p3,
-      if (to == 1) state.p1 else if (to == 2) state.p2 else state.p3)
+       if (to == 1) state.p1 else if (to == 2) state.p2 else state.p3)
     }
 
     def children(initial: State, _from: Int, _to: Int) = {
@@ -84,7 +89,7 @@ object HanoiTowerSolution extends App {
       }
     }
 
-    while(states.nonEmpty) {
+    while (states.nonEmpty) {
       val state = states(0)
       if (state.isSuccess) {
         println("Success")
@@ -102,12 +107,48 @@ object HanoiTowerSolution extends App {
         println(s"States = ${states}")
 
       }
-//      Thread sleep 2000
     }
-
 
   }
 
-   bfs
+  def heuristic = {
+
+    def _move(p1: Pole, p2: Pole) = {
+      if (canMove(p1, p2)) move(p1, p2) else move(p2, p1)
+    }
+
+    val p1 = Pole("pole 1", mutable.Stack(Disk(1), Disk(2), Disk(3)))
+    val p2 = Pole("pole 2", mutable.Stack())
+    val p3 = Pole("pole 3", mutable.Stack())
+
+    val n = p1.disks.size
+
+    if (n % 2 == 0) {
+      while (p3.disks.size != n) {
+        _move(p1, p2)
+        if (p3.disks.size != n) {
+          _move(p1, p3)
+        }
+        if (p3.disks.size != n) {
+          _move(p2, p3)
+        }
+      }
+    } else {
+      while (p3.disks.size != n) {
+        _move(p1, p3)
+        if (p3.disks.size != n) {
+          _move(p1, p2)
+        }
+        if (p3.disks.size != n) {
+          _move(p2, p3)
+        }
+      }
+
+    }
+    println("Success!")
+
+  }
+
+  heuristic
 
 }
