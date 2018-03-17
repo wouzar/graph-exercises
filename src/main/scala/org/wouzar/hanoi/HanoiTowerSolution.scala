@@ -123,23 +123,25 @@ object HanoiTowerSolution extends App {
 
     val n = p1.disks.size
 
+    def failure: Boolean = p3.disks.size != n
+
     if (n % 2 == 0) {
-      while (p3.disks.size != n) {
+      while (failure) {
         _move(p1, p2)
-        if (p3.disks.size != n) {
+        if (failure) {
           _move(p1, p3)
         }
-        if (p3.disks.size != n) {
+        if (failure) {
           _move(p2, p3)
         }
       }
     } else {
-      while (p3.disks.size != n) {
+      while (failure) {
         _move(p1, p3)
-        if (p3.disks.size != n) {
+        if (failure) {
           _move(p1, p2)
         }
-        if (p3.disks.size != n) {
+        if (failure) {
           _move(p2, p3)
         }
       }
